@@ -135,7 +135,6 @@ class RemoteSagePayTest < Test::Unit::TestCase
   def test_successful_purchase_and_void
     assert purchase = @gateway.purchase(@amount, @mastercard, @options)
     assert_success purchase
-
     assert void = @gateway.void(purchase.authorization)
     assert_success void
   end

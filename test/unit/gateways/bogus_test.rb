@@ -44,6 +44,33 @@ class BogusTest < Test::Unit::TestCase
     end
   end
 
+  def test_3d_secure_authorize
+    response = @gateway.authorize(1000, credit_card('4'))
+    assert response.three_d_secure?
+    assert_equal BogusGateway::THREE_D_PA_REQ, response.pa_req
+    assert_equal BogusGateway::THREE_D_MD, response.md
+    assert_equal BogusGateway::THREE_D_ACS_URL, response.acs_url
+  end
+
+  def test_3d_secure_purchase
+    response = @gateway.purchase(1000, credit_card('4'))
+    assert response.three_d_secure?
+    assert_equal BogusGateway::THREE_D_PA_REQ, response.pa_req
+    assert_equal BogusGateway::THREE_D_MD, response.md    
+    assert_equal BogusGateway::THREE_D_ACS_URL, response.acs_url
+  end
+  
+  def test_3d_complete
+    response = @gateway.three_d_complete(BogusGateway::THREE_D_PA_RES, BogusGateway::THREE_D_MD)
+    assert_equal BogusGateway::SUCCESS_MESSAGE, response.message
+
+    response = @gateway.three_d_complete('incorrect PaRes', BogusGateway::THREE_D_MD)
+    assert_equal BogusGateway::FAILURE_MESSAGE, response.message
+    
+    response = @gateway.three_d_complete(BogusGateway::THREE_D_PA_RES, 'incorrect MD')
+    assert_equal BogusGateway::FAILURE_MESSAGE, response.message
+  end
+
   def test_credit
     assert  @gateway.credit(1000, credit_card(CC_SUCCESS_PLACEHOLDER)).success?
     assert !@gateway.credit(1000, credit_card(CC_FAILURE_PLACEHOLDER)).success?
@@ -97,6 +124,10 @@ class BogusTest < Test::Unit::TestCase
     assert @gateway.purchase(1000, reference.authorization).success?
   end
 
+  def test_supports_3d_secure
+    assert @gateway.supports_3d_secure  
+  end
+  
   def test_supported_countries
     assert_equal ['US'], BogusGateway.supported_countries
   end

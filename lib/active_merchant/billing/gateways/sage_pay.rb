@@ -51,6 +51,7 @@ module ActiveMerchant #:nodoc:
 
       self.supported_cardtypes = [:visa, :master, :american_express, :discover, :jcb, :switch, :solo, :maestro, :diners_club]
       self.supported_countries = ['GB', 'IE']
+      self.supports_3d_secure = true
       self.default_currency = 'GBP'
 
       self.homepage_url = 'http://www.sagepay.com'
@@ -60,7 +61,15 @@ module ActiveMerchant #:nodoc:
         requires!(options, :login)
         super
       end
+      
+#      def test?
+#        @options[:test] || super
+#      end
 
+      def three_d_secure_enabled?
+        @options[:enable_3d_secure]
+      end
+      
       def purchase(money, payment_method, options = {})
         requires!(options, :order_id)
 
@@ -73,6 +82,8 @@ module ActiveMerchant #:nodoc:
         add_customer_data(post, options)
         add_optional_data(post, options)
 
+        add_three_d_secure_flag(post, options)
+        
         commit(:purchase, post)
       end
 
@@ -88,6 +99,8 @@ module ActiveMerchant #:nodoc:
         add_customer_data(post, options)
         add_optional_data(post, options)
 
+        add_three_d_secure_flag(post, options)
+        
         commit(:authorization, post)
       end
 
@@ -175,7 +188,12 @@ module ActiveMerchant #:nodoc:
         add_token(post, token)
         commit(:unstore, post)
       end
-
+      
+      # Completes a 3D Secure transaction
+      def three_d_complete(pa_res, md)
+        commit(:three_d_complete, 'PARes' => pa_res, 'MD' => md)
+      end
+      
       private
       def add_reference(post, identification)
         order_id, transaction_id, authorization, security_key = identification.split(';')
@@ -215,6 +233,14 @@ module ActiveMerchant #:nodoc:
         add_pair(post, :CustomerEMail, options[:email][0,255]) unless options[:email].blank?
         add_pair(post, :BillingPhone, options[:phone].gsub(/[^0-9+]/, '')[0,20]) unless options[:phone].blank?
         add_pair(post, :ClientIPAddress, options[:ip])
+      end
+      
+      def add_three_d_secure_flag(post, options)
+        if three_d_secure_enabled? && options[:skip_3d_secure] != true
+          add_pair(post, :Apply3DSecure, '0')
+        else
+          add_pair(post, :Apply3DSecure, '2')
+        end
       end
 
       def add_optional_data(post, options)
@@ -327,7 +353,11 @@ module ActiveMerchant #:nodoc:
             :street_match => AVS_CVV_CODE[ response["AddressResult"] ],
             :postal_match => AVS_CVV_CODE[ response["PostCodeResult"] ],
           },
-          :cvv_result => AVS_CVV_CODE[ response["CV2Result"] ]
+          :cvv_result => AVS_CVV_CODE[ response["CV2Result"] ],
+          :three_d_secure => response["Status"] == '3DAUTH',
+          :pa_req => response["PAReq"],
+          :md => response["MD"],
+          :acs_url => response["ACSURL"]
         )
       end
 
@@ -365,13 +395,18 @@ module ActiveMerchant #:nodoc:
         endpoint = case action
           when :purchase, :authorization, :authenticate then "vspdirect-register"
           when :store then 'directtoken'
+          when :three_d_complete then 'direct3dcallback'
           else TRANSACTIONS[action].downcase
         end
         "#{test? ? self.test_url : self.live_url}/#{endpoint}.vsp"
       end
 
       def build_simulator_url(action)
-        endpoint = [ :purchase, :authorization, :authenticate ].include?(action) ? "VSPDirectGateway.asp" : "VSPServerGateway.asp?Service=Vendor#{TRANSACTIONS[action].capitalize}Tx"
+        if action == :three_d_complete
+          endpoint = 'VSPDirectCallback.asp'
+        else
+          endpoint = [ :purchase, :authorization, :authenticate ].include?(action) ? "VSPDirectGateway.asp" : "VSPServerGateway.asp?Service=Vendor#{TRANSACTIONS[action].capitalize}Tx"
+        end
         "#{self.simulator_url}/#{endpoint}"
       end
 

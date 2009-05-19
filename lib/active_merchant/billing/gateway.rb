@@ -92,6 +92,10 @@ module ActiveMerchant #:nodoc:
 
       self.abstract_class = false
 
+      # Indicates if the gateway supports 3D Secure authentication or not
+      class_attribute :supports_3d_secure
+      self.supports_3d_secure = false
+
       # The application making the calls to the gateway
       # Useful for things like the PayPal build notation (BN) id fields
       superclass_delegating_accessor :application_id
