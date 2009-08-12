@@ -5,6 +5,22 @@ class ResponseTest < Test::Unit::TestCase
     assert Response.new(true, 'message', :param => 'value').success?
     assert !Response.new(false, 'message', :param => 'value').success?
   end
+
+  def test_three_d_secure_required
+    assert Response.new(false, 'message', {}, :three_d_secure => true).three_d_secure?
+    assert !Response.new(false, 'message', {}, :three_d_secure => false).three_d_secure?
+  end
+  
+  def test_three_d_secure_params
+    pa_req ='eJxVUttygjAQfe9XMH4AuUCoOGscW9'
+    md = '2012354765399251503'
+    acs_url = 'https://ukvpstest.protx.com/mpitools/accesscontroler?action=pareq'
+    response = Response.new(false, 'message', {}, :three_d_secure => true, :pa_req => pa_req, :md => md, :acs_url => acs_url)
+    
+    assert_equal pa_req, response.pa_req
+    assert_equal md, response.md
+    assert_equal acs_url, response.acs_url
+  end
   
   def test_get_params
     response = Response.new(true, 'message', :param => 'value')

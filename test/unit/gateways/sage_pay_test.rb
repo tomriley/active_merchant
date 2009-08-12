@@ -42,7 +42,39 @@ class SagePayTest < Test::Unit::TestCase
     assert_instance_of Response, response
     assert_failure response
   end
+
+  def test_response_requires_three_d_secure_authentication
+    @gateway.stubs(:ssl_post).returns(three_d_secure_response)
+    
+    response = @gateway.purchase(100, @credit_card, @options)
+    assert_failure response
+    assert response.three_d_secure?
+    
+    assert_equal 'eJxVUttygjAQfe9XMH4AuUCoOGscW9sRx7ZM7UsfmZAWVEBDUPr3TRCqzdOes5uzuyeBWVvsnZNUdV6V0xFx8WjG7+AjU1IuNlI0SnJ4kXWdfEsnT6cjign1mH8fMC8MKSMMeyMO8fxdHjn0OtzIuATQAI2AEllSag6JOD5Er5yRceD7gHoIhVTRgjMcMi8ICb4cQBcayqSQfKOlSspd5ax1CqijQFRNqdUPH9MA0ACgUXueaX2YIHQ+n926v+iKym12gGwa0HWkuLFRbeTaPOWRV7+VpyzX0Xr79bxdr0TytFx9Yr2YTwHZCkgTLTnFOMSU+g4hE8YmXgio4yEp7BycdAv0AA62x/w2c8uAsVnJUgyLDAhke6hKaSoooL8YUlkLHqtKt85LHJm+FgO67vG4tEYLbbwj1uMusmK5sceMHXRqFgCytah/PtQ/tIn+fYBfp7GzSg==',
+      response.pa_req
+    assert_equal '2012354765399251503',
+      response.md
+    assert_equal 'https://ukvpstest.protx.com/mpitools/accesscontroler?action=pareq',
+      response.acs_url
+  end
   
+  def test_supports_3d_secure
+    assert @gateway.supports_3d_secure
+  end
+  
+  def test_can_enable_3d_secure
+    assert !@gateway.three_d_secure_enabled?
+    @gateway2 = ProtxGateway.new(:login => 'X', :enable_3d_secure => true)
+    assert @gateway2.three_d_secure_enabled?
+  end
+  
+  def test_three_d_complete
+    @gateway.stubs(:ssl_post).returns(successful_purchase_response)
+    
+    response = @gateway.three_d_complete('PARes VALUE','MD VALUE')
+    assert_success response
+  end
+
   def test_purchase_url
     assert_equal 'https://test.sagepay.com/gateway/service/vspdirect-register.vsp', @gateway.send(:url_for, :purchase)
   end
@@ -134,6 +166,18 @@ AVSCV2=ALL MATCH
 AddressResult=MATCHED
 PostCodeResult=MATCHED
 CV2Result=MATCHED
+    RESP
+  end
+
+  def three_d_secure_response
+    <<-RESP
+Status=3DAUTH
+MD=2012354765399251503
+ACSURL=https://ukvpstest.protx.com/mpitools/accesscontroler?action=pareq
+PAReq=eJxVUttygjAQfe9XMH4AuUCoOGscW9sRx7ZM7UsfmZAWVEBDUPr3TRCqzdOes5uzuyeBWVvsnZNUdV6V0xFx8WjG7+AjU1IuNlI0SnJ4kXWdfEsnT6cjign1mH8fMC8MKSMMeyMO8fxdHjn0OtzIuATQAI2AEllSag6JOD5Er5yRceD7gHoIhVTRgjMcMi8ICb4cQBcayqSQfKOlSspd5ax1CqijQFRNqdUPH9MA0ACgUXueaX2YIHQ+n926v+iKym12gGwa0HWkuLFRbeTaPOWRV7+VpyzX0Xr79bxdr0TytFx9Yr2YTwHZCkgTLTnFOMSU+g4hE8YmXgio4yEp7BycdAv0AA62x/w2c8uAsVnJUgyLDAhke6hKaSoooL8YUlkLHqtKt85LHJm+FgO67vG4tEYLbbwj1uMusmK5sceMHXRqFgCytah/PtQ/tIn+fYBfp7GzSg==
+StatusDetail=2007 : Please redirect your customer to the ACSURL, passing the MD and PaReq.
+VPSProtocol=2.22
+3DSecureStatus=OK
     RESP
   end
 end

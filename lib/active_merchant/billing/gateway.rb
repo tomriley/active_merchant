@@ -88,6 +88,10 @@ module ActiveMerchant #:nodoc:
       class_inheritable_accessor :supported_cardtypes
       self.supported_cardtypes = []
       
+      # Indicates if the gateway supports 3D Secure authentication or not
+      class_inheritable_accessor :supports_3d_secure
+      self.supports_3d_secure = false
+      
       class_inheritable_accessor :homepage_url
       class_inheritable_accessor :display_name
       

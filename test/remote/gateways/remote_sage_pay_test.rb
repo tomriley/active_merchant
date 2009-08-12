@@ -148,7 +148,7 @@ class RemoteSagePayTest < Test::Unit::TestCase
   def test_successful_purchase_and_void
     assert purchase = @gateway.purchase(@amount, @mastercard, @options)
     assert_success purchase    
-     
+    
     assert void = @gateway.void(purchase.authorization)
     assert_success void
   end
@@ -199,7 +199,7 @@ class RemoteSagePayTest < Test::Unit::TestCase
     assert response.test?
     assert !response.authorization.blank?
   end
-  
+
   def test_invalid_login
     message = SagePayGateway.simulate ? 'VSP Simulator cannot find your vendor name.  Ensure you have have supplied a Vendor field with your VSP Vendor name assigned to it.' : '3034 : The Vendor or VendorName value is required.' 
     

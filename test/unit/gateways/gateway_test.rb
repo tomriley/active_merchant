@@ -9,6 +9,12 @@ class GatewayTest < Test::Unit::TestCase
     assert_false [:visa, :bogus].all? { |invalid_cardtype| Gateway.supports?(invalid_cardtype) }
   end
   
+  def test_should_be_able_to_check_for_3d_secure_support
+    assert !Gateway.supports_3d_secure
+    Gateway.supports_3d_secure = true
+    assert Gateway.supports_3d_secure
+  end
+  
   def test_should_gateway_uses_ssl_strict_checking_by_default
     assert Gateway.ssl_strict
   end
