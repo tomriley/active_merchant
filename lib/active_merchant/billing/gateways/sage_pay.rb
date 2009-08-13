@@ -245,19 +245,17 @@ module ActiveMerchant #:nodoc:
         add_pair(post, :ExpiryDate, format_date(credit_card.month, credit_card.year), :required => true)
         
         start_date = format_date(credit_card.start_month, credit_card.start_year)
-        add_pair(post, :StartDate, start_date) if start_date
+        if start_date
+          print "Adding StartDate #{start_date}\n"
+          add_pair(post, :StartDate, start_date)
+        end
         
         unless credit_card.issue_number.blank?
           issue_number = sprintf("%02d", credit_card.issue_number.to_i)
+          print "Adding IssueNumber #{issue_number}\n"
           add_pair(post, :IssueNumber, issue_number)
         end
         
-        #if requires_start_date_or_issue_number?(credit_card)
-        if credit_card.start_month && credit_card.start_year
-          add_pair(post, :StartDate, format_date(credit_card.start_month, credit_card.start_year))
-        end
-        add_pair(post, :IssueNumber, credit_card.issue_number) if credit_card.issue_number
-        #end
         add_pair(post, :CardType, map_card_type(credit_card))
         
         add_pair(post, :CV2, credit_card.verification_value)
@@ -282,7 +280,7 @@ module ActiveMerchant #:nodoc:
       
       # MMYY format
       def format_date(month, year)
-        return nil if year.blank? || month.blank?
+        return nil if year.nil? || month.nil? || year.blank? || month.blank?
         
         year  = sprintf("%.4i", year)
         month = sprintf("%.2i", month)

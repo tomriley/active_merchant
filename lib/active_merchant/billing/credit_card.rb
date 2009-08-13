@@ -112,8 +112,17 @@ module ActiveMerchant #:nodoc:
       def before_validate #:nodoc: 
         self.month = month.to_i
         self.year  = year.to_i
-        self.start_month = start_month.to_i unless start_month.nil?
-        self.start_year = start_year.to_i unless start_year.nil?
+        # Set start date to nil unless user provided one
+        if !start_month.nil? && !start_month.blank?
+          self.start_month = start_month.to_i
+        else
+          self.start_month = nil
+        end
+        if !start_year.nil? && !start_year.blank?
+          self.start_year = start_year.to_i
+        else
+          self.start_year = nil
+        end
         self.number = number.to_s.gsub(/[^\d]/, "")
         self.type.downcase! if type.respond_to?(:downcase)
         self.type = self.class.type?(number) if type.blank?
@@ -140,12 +149,9 @@ module ActiveMerchant #:nodoc:
       end
       
       def validate_switch_or_solo_attributes #:nodoc:
-        if %w[switch solo].include?(type)
-          unless valid_month?(@start_month) && valid_start_year?(@start_year) || valid_issue_number?(@issue_number)
-            errors.add :start_month,  "is invalid"      unless valid_month?(@start_month)
-            errors.add :start_year,   "is invalid"      unless valid_start_year?(@start_year)
-            errors.add :issue_number, "cannot be empty" unless valid_issue_number?(@issue_number)
-          end
+        if @start_month && @start_year
+          errors.add :start_month,  "is invalid"      unless valid_month?(@start_month)
+          errors.add :start_year,   "is invalid"      unless valid_start_year?(@start_year)
         end
       end
       
