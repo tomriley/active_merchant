@@ -243,7 +243,15 @@ module ActiveMerchant #:nodoc:
         add_pair(post, :CardNumber, credit_card.number, :required => true)
          
         add_pair(post, :ExpiryDate, format_date(credit_card.month, credit_card.year), :required => true)
-         
+        
+        start_date = format_date(credit_card.start_month, credit_card.start_year)
+        add_pair(post, :StartDate, start_date) if start_date
+        
+        unless credit_card.issue_number.blank?
+          issue_number = sprintf("%02d", credit_card.issue_number.to_i)
+          add_pair(post, :IssueNumber, issue_number)
+        end
+        
         #if requires_start_date_or_issue_number?(credit_card)
         if credit_card.start_month && credit_card.start_year
           add_pair(post, :StartDate, format_date(credit_card.start_month, credit_card.start_year))
