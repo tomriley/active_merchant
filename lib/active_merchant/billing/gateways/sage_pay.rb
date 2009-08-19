@@ -251,13 +251,11 @@ module ActiveMerchant #:nodoc:
         end
         
         unless credit_card.issue_number.blank?
-          issue_number = sprintf("%02d", credit_card.issue_number.to_i)
-          print "Adding IssueNumber #{issue_number}\n"
-          add_pair(post, :IssueNumber, issue_number)
+          print "Adding IssueNumber #{credit_card.issue_number}\n"
+          add_pair(post, :IssueNumber, credit_card.issue_number)
         end
         
         add_pair(post, :CardType, map_card_type(credit_card))
-        
         add_pair(post, :CV2, credit_card.verification_value)
       end
       
