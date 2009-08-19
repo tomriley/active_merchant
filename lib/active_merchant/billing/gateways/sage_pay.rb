@@ -305,7 +305,6 @@ module ActiveMerchant #:nodoc:
         end
 
         add_pair(post, :CardType, map_card_type(credit_card))
-
         add_pair(post, :CV2, credit_card.verification_value)
       end
 
