@@ -10,6 +10,7 @@ module ActiveMerchant #:nodoc:
     
       APPROVED = 'OK'
       REGISTERED = 'REGISTERED'
+      AUTENTICATED = 'AUTENTICATED'
     
       TRANSACTIONS = {
         :purchase => 'PAYMENT',
@@ -289,7 +290,7 @@ module ActiveMerchant #:nodoc:
       def commit(action, parameters)
         response = parse( ssl_post(url_for(action), post_data(action, parameters)) )
           
-        Response.new([APPROVED, REGISTERED].include?(response['Status']), message_from(response), response,
+        Response.new([APPROVED, REGISTERED, AUTENTICATED].include?(response['Status']), message_from(response), response,
           :test => test?,
           :authorization => authorization_from(response, parameters, action),
           :avs_result => { 
@@ -348,7 +349,7 @@ module ActiveMerchant #:nodoc:
       end
 
       def message_from(response)
-        [APPROVED, REGISTERED].include?(response['Status']) ? 'Success' : (response['StatusDetail'] || 'Unspecified error')    # simonr 20080207 can't actually get non-nil blanks, so this is shorter
+        [APPROVED, REGISTERED, AUTENTICATED].include?(response['Status']) ? 'Success' : (response['StatusDetail'] || 'Unspecified error')    # simonr 20080207 can't actually get non-nil blanks, so this is shorter
       end
 
       def post_data(action, parameters = {})
