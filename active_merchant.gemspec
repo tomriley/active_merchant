@@ -1,6 +1,6 @@
 Gem::Specification.new do |s|
-  s.name     = "active_merchant"
-  s.version  = "1.4.2.8"
+  s.name     = "tomriley-active_merchant"
+  s.version  = "1.4.2.11"
   s.date     = "2009-01-12"
   s.summary  = "Active Merchant is a simple payment abstraction library used in and sponsored by Shopify."
   s.homepage = "http://www.activemerchant.org/"
