@@ -22,7 +22,7 @@ module ActiveMerchant #:nodoc:
         :void => 'VOID',
         :abort => 'ABORT',
         :store => 'TOKEN',
-        :unstore => 'REMOVETOKEN'
+        :unstore => 'REMOVETOKEN',
         :repeat => 'REPEAT',
         :authenticate => 'AUTHENTICATE',
         :authorise => 'AUTHORISE'
@@ -373,7 +373,7 @@ module ActiveMerchant #:nodoc:
            response["TxAuthNo"],
            response["SecurityKey"],
            action ].join(";")
-         end
+        end
       end
       
       def add_related_reference(post, identification)
